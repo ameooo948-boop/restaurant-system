@@ -18,3 +18,6 @@ Route::middleware('auth')->group(function (): void {
                 ->name('dashboard');
         });
 });
+
+// Load restaurant menu administration routes.
+require __DIR__ . '/restaurant_menu.php';

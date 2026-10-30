@@ -11,10 +11,27 @@ const logout = useForm({});
             <div>
                 <p class="text-sm font-semibold text-amber-700">Restaurant Admin</p>
                 <h1 class="mt-1 text-2xl font-bold">{{ branch.name }}</h1>
-                <p class="mt-1 text-sm text-slate-500">الفرع {{ branch.code }} · لوحة تأسيسية للصلاحيات</p>
+                <p class="mt-1 text-sm text-slate-500">الفرع {{ branch.code }} · لوحة إدارة الفرع</p>
             </div>
             <button @click="logout.post('/logout')" class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white">تسجيل الخروج</button>
         </header>
+        <section v-if="permissions.includes('menu.view')" class="mt-8 grid gap-3 sm:grid-cols-3">
+            <a :href="`/admin/branches/${branch.id}/menu/categories`" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-amber-300 hover:shadow-md">
+                <p class="text-sm font-semibold text-amber-700">إدارة المنيو</p>
+                <h2 class="mt-2 text-lg font-bold">التصنيفات</h2>
+                <p class="mt-1 text-sm text-slate-500">إنشاء وتنظيم أقسام المطعم.</p>
+            </a>
+            <a :href="`/admin/branches/${branch.id}/menu/products`" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-amber-300 hover:shadow-md">
+                <p class="text-sm font-semibold text-amber-700">الكتالوج</p>
+                <h2 class="mt-2 text-lg font-bold">المنتجات والأحجام</h2>
+                <p class="mt-1 text-sm text-slate-500">الأسعار والتوفر لكل فرع.</p>
+            </a>
+            <a :href="`/admin/branches/${branch.id}/menu/modifiers`" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-amber-300 hover:shadow-md">
+                <p class="text-sm font-semibold text-amber-700">التخصيصات</p>
+                <h2 class="mt-2 text-lg font-bold">الإضافات والاختيارات</h2>
+                <p class="mt-1 text-sm text-slate-500">مجموعات الإضافات وأسعارها.</p>
+            </a>
+        </section>
         <section class="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 class="font-bold">الصلاحيات الممنوحة لهذا الفرع</h2>
             <div class="mt-4 flex flex-wrap gap-2">

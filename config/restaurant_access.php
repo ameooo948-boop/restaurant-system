@@ -7,6 +7,7 @@ $all = [
     'staff.manage',
     'menu.view',
     'menu.manage',
+    'menu.catalog.manage',
     'orders.view',
     'orders.create',
     'orders.confirm',
@@ -31,8 +32,10 @@ $all = [
 return [
     'permissions' => $all,
     'roles' => [
+        // Restaurant owners can edit the shared restaurant-wide catalog.
         'restaurant_owner' => $all,
-        'branch_manager' => array_values(array_diff($all, ['branches.view'])),
+        // Branch managers can view the shared catalog but cannot change global products/categories.
+        'branch_manager' => array_values(array_diff($all, ['branches.view', 'menu.catalog.manage'])),
         'cashier' => [
             'dashboard.view', 'menu.view', 'orders.view', 'orders.create',
             'orders.confirm', 'orders.update_status', 'orders.cancel',

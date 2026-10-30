@@ -1,0 +1,3 @@
+// أضف العنصرين التاليين إلى مصفوفة providers في bootstrap/providers.php:
+App\Providers\RestaurantServiceProvider::class,
+App\Providers\RestaurantFortifyServiceProvider::class,

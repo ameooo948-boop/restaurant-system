@@ -1,0 +1,2 @@
+// أضف السطر التالي في نهاية routes/web.php:
+require __DIR__.'/restaurant_auth.php';

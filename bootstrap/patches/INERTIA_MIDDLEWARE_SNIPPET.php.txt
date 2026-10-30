@@ -1,0 +1,5 @@
+// أضف الاستيراد أعلى bootstrap/app.php:
+use App\Http\Middleware\HandleInertiaRequests;
+
+// داخل withMiddleware(function (Middleware $middleware): void { ... }):
+$middleware->web(append: [HandleInertiaRequests::class]);

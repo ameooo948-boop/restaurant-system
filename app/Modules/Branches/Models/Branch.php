@@ -3,6 +3,7 @@
 namespace App\Modules\Branches\Models;
 
 use App\Modules\Restaurants\Models\Restaurant;
+use App\Modules\Staff\Models\BranchUserAssignment;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,19 +15,9 @@ class Branch extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'restaurant_id',
-        'code',
-        'name',
-        'slug',
-        'phone',
-        'email',
-        'address_line',
-        'city',
-        'area',
-        'latitude',
-        'longitude',
-        'is_primary',
-        'is_active',
+        'restaurant_id', 'code', 'name', 'slug', 'phone', 'email',
+        'address_line', 'city', 'area', 'latitude', 'longitude',
+        'is_primary', 'is_active',
     ];
 
     protected function casts(): array
@@ -57,6 +48,11 @@ class Branch extends Model
     public function settings(): HasMany
     {
         return $this->hasMany(BranchSetting::class);
+    }
+
+    public function staffAssignments(): HasMany
+    {
+        return $this->hasMany(BranchUserAssignment::class);
     }
 
     public function scopeActive(Builder $query): Builder

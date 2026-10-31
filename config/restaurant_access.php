@@ -7,7 +7,8 @@ $all = [
     'orders.refund', 'payments.view', 'payments.record',
     'kitchen.view', 'kitchen.tickets.update', 'kitchen.stations.manage',
     'inventory.view', 'inventory.manage', 'purchases.manage', 'reports.view',
-    'settings.manage', 'tables.view', 'tables.manage', 'deliveries.view', 'deliveries.update',
+    'settings.manage', 'tables.view', 'tables.manage',
+    'deliveries.view', 'deliveries.update', 'deliveries.assign', 'deliveries.zones.manage',
 ];
 
 return [

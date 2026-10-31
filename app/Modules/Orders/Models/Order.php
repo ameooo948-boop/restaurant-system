@@ -6,6 +6,8 @@ use App\Models\User;
 use App\Modules\Branches\Models\Branch;
 use App\Modules\Cart\Models\Cart;
 use App\Modules\Customers\Models\CustomerProfile;
+use App\Modules\Delivery\Models\Delivery;
+use App\Modules\Delivery\Models\DeliveryZone;
 use App\Modules\Kitchen\Models\KitchenTicket;
 use App\Modules\Orders\Enums\OrderStatus;
 use App\Modules\Orders\Enums\OrderType;
@@ -13,16 +15,18 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Order extends Model
 {
     protected $fillable = [
-        'public_id', 'restaurant_id', 'branch_id', 'cart_id', 'user_id', 'customer_profile_id',
-        'order_number', 'idempotency_key', 'order_type', 'order_status', 'payment_method',
-        'payment_status', 'order_source', 'currency', 'subtotal', 'discount_total', 'tax_total',
-        'delivery_fee', 'total', 'customer_name', 'customer_phone', 'customer_email',
-        'delivery_address_snapshot', 'table_label', 'customer_notes', 'guest_token_hash',
-        'placed_at', 'confirmed_at', 'completed_at', 'cancelled_at',
+        'public_id', 'restaurant_id', 'branch_id', 'delivery_zone_id', 'delivery_zone_name_snapshot',
+        'cart_id', 'user_id', 'customer_profile_id', 'order_number', 'idempotency_key',
+        'order_type', 'order_status', 'payment_method', 'payment_status', 'order_source',
+        'currency', 'subtotal', 'discount_total', 'tax_total', 'delivery_fee', 'total',
+        'customer_name', 'customer_phone', 'customer_email', 'delivery_address_snapshot',
+        'table_label', 'customer_notes', 'guest_token_hash', 'placed_at', 'confirmed_at',
+        'completed_at', 'cancelled_at',
     ];
 
     protected function casts(): array
@@ -37,6 +41,8 @@ class Order extends Model
     }
 
     public function branch(): BelongsTo { return $this->belongsTo(Branch::class); }
+    public function deliveryZone(): BelongsTo { return $this->belongsTo(DeliveryZone::class, 'delivery_zone_id'); }
+    public function delivery(): HasOne { return $this->hasOne(Delivery::class); }
     public function user(): BelongsTo { return $this->belongsTo(User::class); }
     public function customerProfile(): BelongsTo { return $this->belongsTo(CustomerProfile::class); }
     public function cart(): BelongsTo { return $this->belongsTo(Cart::class); }

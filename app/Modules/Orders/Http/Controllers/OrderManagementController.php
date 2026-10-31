@@ -112,6 +112,8 @@ class OrderManagementController
                     'amount' => $payment->amount,
                     'currency' => $payment->currency,
                     'paid_at' => $payment->paid_at?->toIso8601String(),
+                    'manual_review_required' => (bool) data_get($payment->metadata, 'manual_review_required', false),
+                    'manual_review_reason' => data_get($payment->metadata, 'manual_review_reason'),
                 ])->values() : [],
                 'history' => $record->statusHistory->map(fn ($history): array => [
                     'old_status' => $history->old_status,
@@ -140,6 +142,7 @@ class OrderManagementController
                 'update_status' => $request->user()->can('orders.update_status'),
                 'cancel' => $request->user()->can('orders.cancel'),
                 'view_payments' => $request->user()->can('payments.view'),
+                'record_payment' => $request->user()->can('payments.record'),
             ],
             'statusOptions' => $this->statusOptions(),
         ]);

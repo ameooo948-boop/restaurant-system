@@ -3,25 +3,42 @@
 namespace App\Modules\Orders\Http\Controllers;
 
 use App\Modules\Orders\Models\Order;
+use App\Modules\Payments\Services\PaymentAttemptRetryPolicy;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class OrderTrackingController
 {
-    public function show(string $publicId, Request $request): Response
+    public function show(string $publicId, Request $request, PaymentAttemptRetryPolicy $retryPolicy): Response
     {
         $order = Order::query()->where('public_id', $publicId)
-            ->with(['items.modifiers', 'statusHistory'])
+            ->with(['items.modifiers', 'statusHistory', 'payments'])
             ->firstOrFail();
 
         $user = $request->user();
         $isOwner = $user && (int) $order->user_id === (int) $user->id;
         $guestToken = $request->session()->get('restaurant.guest_cart_token');
         $isGuestOwner = $order->user_id === null && is_string($guestToken)
+            && is_string($order->guest_token_hash)
             && hash_equals((string) $order->guest_token_hash, hash('sha256', $guestToken));
-
         abort_unless($isOwner || $isGuestOwner, 404);
+
+        $latestPayment = $order->payments->sortByDesc('id')->first();
+        $canRetryPayment = $order->payment_method === 'vodafone_cash'
+            && $order->payment_status !== 'succeeded'
+            && ! in_array($order->order_status, ['cancelled', 'completed'], true)
+            && $retryPolicy->mayCreateNewAttempt($latestPayment);
+
+        $paymentNotice = null;
+        $latestPaymentNeedsReview = $order->payments->contains(
+            fn ($payment): bool => (bool) data_get($payment->metadata, 'manual_review_required', false),
+        );
+        if ($latestPaymentNeedsReview) {
+            $paymentNotice = 'تم استلام إشعار دفع يحتاج إلى مراجعة مالية من المطعم. لا تنفذ أي محاولة دفع إضافية، وتواصل مع المطعم برقم الطلب.';
+        } elseif ($order->payment_method === 'vodafone_cash' && ! $canRetryPayment && $order->payment_status !== 'succeeded') {
+            $paymentNotice = 'حالة الدفع لم تُحسم بعد. لا تعاود الدفع لمجرد انتهاء الوقت؛ انتظر تحديث بوابة الدفع أو تواصل مع المطعم للتحقق من العملية.';
+        }
 
         return Inertia::render('Store/Orders/Show', [
             'order' => [
@@ -39,6 +56,8 @@ class OrderTrackingController
                 'customer_phone' => $order->customer_phone,
                 'address' => $order->delivery_address_snapshot,
                 'placed_at' => $order->placed_at?->toIso8601String(),
+                'can_retry_payment' => (bool) $canRetryPayment,
+                'payment_notice' => $paymentNotice,
                 'items' => $order->items->map(fn ($item) => [
                     'product_name' => $item->product_name_snapshot,
                     'variant_name' => $item->variant_name_snapshot,

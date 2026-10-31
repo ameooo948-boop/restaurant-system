@@ -1,7 +1,8 @@
 <script setup>
-import { Head } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 defineProps({ order: { type: Object, required: true } });
 const statusLabels = { pending_confirmation: 'بانتظار تأكيد المطعم', confirmed: 'تم تأكيد الطلب', preparing: 'جارٍ التحضير', ready: 'الطلب جاهز', out_for_delivery: 'خرج للتوصيل', delivered: 'تم التوصيل', completed: 'مكتمل', cancelled: 'ملغي' };
+function retryPayment(order) { router.post(`/orders/${order.public_id}/payments/vodafone-cash/retry`); }
 </script>
 
 <template>
@@ -11,9 +12,10 @@ const statusLabels = { pending_confirmation: 'بانتظار تأكيد المط
             <p class="text-sm font-semibold text-emerald-700">تم استلام طلبك</p>
             <h1 class="mt-2 text-2xl font-black">طلب رقم {{ order.order_number }}</h1>
             <div class="mt-5 rounded-2xl bg-amber-50 p-4"><p class="text-sm text-amber-800">حالة الطلب</p><p class="mt-1 text-lg font-black">{{ statusLabels[order.order_status] ?? order.order_status }}</p></div>
+            <div v-if="order.payment_method === 'vodafone_cash'" class="mt-4 rounded-2xl border p-4"><p class="font-bold">حالة الدفع الإلكتروني: {{ order.payment_status }}</p><p v-if="order.payment_status !== 'succeeded'" class="mt-1 text-sm text-slate-600">لن يبدأ تجهيز طلبك قبل وصول تأكيد الدفع من بوابة الدفع.</p><p v-if="order.payment_notice" class="mt-2 text-sm text-amber-800">{{ order.payment_notice }}</p><button v-if="order.can_retry_payment" @click="retryPayment(order)" class="mt-3 rounded-xl bg-amber-400 px-4 py-2 font-bold">إعادة محاولة الدفع بفودافون كاش</button></div>
             <section class="mt-7"><h2 class="font-bold">تفاصيل المنتجات</h2><div v-for="(item, index) in order.items" :key="index" class="flex justify-between gap-4 border-b py-3 text-sm"><div><p class="font-semibold">{{ item.product_name }} - {{ item.variant_name }} × {{ item.quantity }}</p><p v-for="modifier in item.modifiers" :key="`${modifier.group_name}-${modifier.option_name}`" class="mt-1 text-xs text-slate-500">{{ modifier.group_name }}: {{ modifier.option_name }}</p></div><strong>{{ item.line_subtotal }} {{ order.currency }}</strong></div></section>
             <section class="mt-6 space-y-2 border-t pt-4 text-sm"><div class="flex justify-between"><span>الإجمالي الفرعي</span><strong>{{ order.subtotal }} {{ order.currency }}</strong></div><div class="flex justify-between"><span>التوصيل</span><strong>{{ order.delivery_fee }} {{ order.currency }}</strong></div><div class="flex justify-between text-lg font-black"><span>الإجمالي</span><strong>{{ order.total }} {{ order.currency }}</strong></div></section>
-            <p class="mt-6 text-xs text-slate-500">الدفع: {{ order.payment_method === 'cash' ? 'نقدًا' : order.payment_method }} — حالة الدفع: {{ order.payment_status }}</p>
+            <p class="mt-6 text-xs text-slate-500">الدفع: {{ order.payment_method === 'cash' ? 'نقدًا' : 'فودافون كاش' }} — حالة الدفع: {{ order.payment_status }}</p>
             <p v-if="order.address" class="mt-2 text-sm text-slate-600">عنوان التوصيل: {{ order.address.address_line }}، {{ order.address.area }}، {{ order.address.city }}</p>
             <p class="mt-6 text-xs text-slate-400">يمكنك فتح هذه الصفحة من نفس المتصفح للطلبات كضيف. لا تشارك رابط الطلب مع الآخرين.</p>
         </div>

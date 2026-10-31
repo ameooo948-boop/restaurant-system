@@ -20,3 +20,9 @@ require __DIR__.'/restaurant_kitchen.php';
 require __DIR__.'/restaurant_admin.php';
 
 require __DIR__.'/restaurant_inventory.php';
+
+// Checkpoint 08 routes
+require __DIR__.'/restaurant_payments.php';
+
+// Checkpoint 08 routes
+require __DIR__.'/restaurant_delivery.php';

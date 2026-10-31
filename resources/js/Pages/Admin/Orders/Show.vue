@@ -6,6 +6,8 @@ const props = defineProps({
     allowedTransitions: { type: Array, default: () => [] }, permissions: { type: Object, required: true }, statusOptions: { type: Array, default: () => [] },
 });
 const form = useForm({ status: '', note: '' });
+const cashPaymentForm = useForm({ note: '' });
+function recordCashPayment() { cashPaymentForm.post(`/admin/branches/${props.branch.id}/orders/${props.order.id}/payments/cash/record`, { preserveScroll: true }); }
 const labels = {
     pending_confirmation: 'بانتظار التأكيد', confirmed: 'تم التأكيد', preparing: 'قيد التحضير', ready: 'جاهز',
     out_for_delivery: 'خرج للتوصيل', delivered: 'تم التسليم', completed: 'مكتمل', cancelled: 'ملغي',
@@ -79,7 +81,12 @@ function transitionLabel(status) { return labels[status] || status; }
                     <h2 class="text-lg font-black text-slate-900">ملخص الحساب</h2>
                     <dl class="mt-4 space-y-3 text-sm"><div class="flex justify-between"><dt class="text-slate-500">المجموع الفرعي</dt><dd>{{ money(order.subtotal) }}</dd></div><div class="flex justify-between"><dt class="text-slate-500">الخصم</dt><dd>{{ money(order.discount_total) }}</dd></div><div class="flex justify-between"><dt class="text-slate-500">الضريبة</dt><dd>{{ money(order.tax_total) }}</dd></div><div class="flex justify-between"><dt class="text-slate-500">التوصيل</dt><dd>{{ money(order.delivery_fee) }}</dd></div><div class="flex justify-between border-t border-slate-100 pt-3 text-base font-black"><dt>الإجمالي</dt><dd>{{ money(order.total) }}</dd></div></dl>
                     <div class="mt-4 rounded-xl bg-slate-50 p-3 text-sm"><p>طريقة الدفع: <strong>{{ order.payment_method === 'cash' ? 'نقدي' : 'Vodafone Cash' }}</strong></p><p class="mt-1">حالة الدفع: <strong>{{ paymentLabels[order.payment_status] }}</strong></p></div>
-                    <div v-if="permissions.view_payments && order.payments.length" class="mt-4 space-y-2"><div v-for="payment in order.payments" :key="payment.id" class="rounded-xl border border-slate-100 p-3 text-xs"><p class="font-bold">{{ payment.method }} · {{ paymentLabels[payment.status] }}</p><p class="mt-1 text-slate-500">{{ money(payment.amount, payment.currency) }} · {{ dateTime(payment.paid_at) }}</p></div></div>
+                    <div v-if="permissions.view_payments && order.payments.length" class="mt-4 space-y-2"><div v-for="payment in order.payments" :key="payment.id" class="rounded-xl border border-slate-100 p-3 text-xs"><p class="font-bold">{{ payment.method }} · {{ paymentLabels[payment.status] }}</p><p class="mt-1 text-slate-500">{{ money(payment.amount, payment.currency) }} · {{ dateTime(payment.paid_at) }}</p><p v-if="payment.manual_review_required" class="mt-2 rounded-lg bg-amber-50 p-2 text-xs font-semibold text-amber-900">هذه العملية تتطلب مراجعة مالية يدوية قبل أي إجراء إضافي. السبب: {{ payment.manual_review_reason }}</p></div></div>
+                    <form v-if="permissions.record_payment && order.payment_method === 'cash' && order.payment_status !== 'succeeded' && order.order_status !== 'cancelled'" @submit.prevent="recordCashPayment" class="mt-4 space-y-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+                        <label class="block text-xs font-semibold text-emerald-950">ملاحظة التحصيل (اختيارية)<input v-model="cashPaymentForm.note" maxlength="500" class="mt-1 w-full rounded-lg border-emerald-200 text-sm" placeholder="مثال: تم استلام المبلغ عند الكاشير" /></label>
+                        <button :disabled="cashPaymentForm.processing" class="w-full rounded-lg bg-emerald-700 px-3 py-2 text-sm font-bold text-white disabled:opacity-50">تأكيد استلام النقدية</button>
+                        <p v-if="cashPaymentForm.errors.payment" class="text-xs text-rose-700">{{ cashPaymentForm.errors.payment }}</p>
+                    </form>
                 </article>
 
                 <article v-if="allowedTransitions.length" class="rounded-2xl border border-amber-200 bg-amber-50 p-5">

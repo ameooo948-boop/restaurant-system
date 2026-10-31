@@ -3,6 +3,7 @@
 namespace App\Modules\Orders\Services;
 
 use App\Models\User;
+use App\Modules\Inventory\Services\InventoryStockService;
 use App\Modules\Kitchen\Models\KitchenTicket;
 use App\Modules\Orders\Enums\OrderStatus;
 use App\Modules\Orders\Enums\OrderType;
@@ -13,6 +14,8 @@ use Illuminate\Validation\ValidationException;
 
 class OrderManagementService
 {
+    public function __construct(private readonly InventoryStockService $inventory) {}
+
     /** @return list<string> */
     public function availableTransitions(Order $order): array
     {
@@ -64,6 +67,7 @@ class OrderManagementService
             $updates = ['order_status' => $targetStatus];
 
             if ($targetStatus === OrderStatus::Confirmed->value) {
+                $this->inventory->reserveForOrder($order);
                 $updates['confirmed_at'] = $order->confirmed_at ?? $now;
             }
 
@@ -74,6 +78,7 @@ class OrderManagementService
             if ($targetStatus === OrderStatus::Cancelled->value) {
                 $updates['cancelled_at'] = $now;
                 $this->cancelQueuedKitchenTickets($order, $actor, $note, $now);
+                $this->inventory->releaseForOrder($order);
             }
 
             $order->update($updates);

@@ -1,0 +1,16 @@
+<script setup>
+import { Link } from '@inertiajs/vue3';
+const props=defineProps({branch:Object,summary:Object,lowStock:Array,recentMovements:Array});
+const links=[['المكونات والوصفات','ingredients'],['أرصدة وحركات المخزون','stock'],['الموردون','suppliers'],['أوامر الشراء','purchases'],['الجرد الفعلي','counts']];
+const moneyQty=(v)=>Number(v||0).toLocaleString('ar-EG',{maximumFractionDigits:3});
+const labels={opening:'رصيد افتتاحي',adjustment:'تسوية',purchase_receipt:'استلام مشتريات',consumption:'استهلاك',count_adjustment:'تسوية جرد',reversal:'عكس حركة'};
+</script>
+<template>
+<main dir="rtl" class="mx-auto max-w-7xl space-y-6 p-4 sm:p-6">
+ <header><p class="text-sm text-slate-500">{{branch.name}} · المخزون</p><h1 class="mt-1 text-3xl font-black text-slate-900">إدارة المخزون</h1><p class="mt-1 text-sm text-slate-500">متابعة المكونات والأرصدة والوصفات والمشتريات والجرد.</p></header>
+ <section class="grid gap-3 sm:grid-cols-3"><article class="rounded-2xl border bg-white p-5"><p class="text-sm text-slate-500">المكونات المسجلة</p><p class="mt-2 text-3xl font-black">{{summary.ingredients}}</p></article><article class="rounded-2xl border bg-white p-5"><p class="text-sm text-slate-500">مكونات منخفضة المخزون</p><p class="mt-2 text-3xl font-black text-rose-700">{{summary.low_stock}}</p></article><article class="rounded-2xl border bg-white p-5"><p class="text-sm text-slate-500">إجمالي الكميات المحجوزة</p><p class="mt-2 text-3xl font-black">{{moneyQty(summary.reserved)}}</p></article></section>
+ <section class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5"><Link v-for="link in links" :key="link[1]" :href="`/admin/branches/${branch.id}/inventory/${link[1]}`" class="rounded-xl border bg-white p-4 text-sm font-bold text-slate-800 hover:border-amber-400 hover:bg-amber-50">{{link[0]}} <span class="mr-2 text-amber-700">←</span></Link></section>
+ <section class="grid gap-5 lg:grid-cols-2"><article class="overflow-hidden rounded-2xl border bg-white"><div class="border-b p-4"><h2 class="font-black">تنبيهات انخفاض المخزون</h2></div><div v-if="lowStock.length" class="divide-y"> <div v-for="item in lowStock" :key="item.ingredient_id" class="flex items-center justify-between gap-3 p-4"><div><p class="font-bold">{{item.name}}</p><p class="mt-1 text-xs text-slate-500">متاح {{moneyQty(item.available)}} {{item.unit}} · حد إعادة الطلب {{moneyQty(item.reorder_level)}}</p></div><span class="rounded-full bg-rose-100 px-3 py-1 text-xs font-bold text-rose-700">منخفض</span></div></div><p v-else class="p-6 text-sm text-slate-500">لا توجد تنبيهات حاليًا.</p></article>
+ <article class="overflow-hidden rounded-2xl border bg-white"><div class="border-b p-4"><h2 class="font-black">أحدث حركات المخزون</h2></div><div v-if="recentMovements.length" class="divide-y"><div v-for="m in recentMovements" :key="m.id" class="flex items-center justify-between gap-3 p-4"><div><p class="font-bold">{{m.ingredient}}</p><p class="mt-1 text-xs text-slate-500">{{labels[m.type]||m.type}} · {{m.reference||'بدون مرجع'}}</p></div><span dir="ltr" :class="Number(m.quantity_delta)>=0?'text-emerald-700':'text-rose-700'" class="font-black">{{Number(m.quantity_delta)>0?'+':''}}{{moneyQty(m.quantity_delta)}}</span></div></div><p v-else class="p-6 text-sm text-slate-500">لا توجد حركات مسجلة.</p></article></section>
+</main>
+</template>

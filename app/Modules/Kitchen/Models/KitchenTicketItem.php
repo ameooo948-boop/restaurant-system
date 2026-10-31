@@ -25,5 +25,6 @@ class KitchenTicketItem extends Model
     }
 
     public function ticket(): BelongsTo { return $this->belongsTo(KitchenTicket::class, 'kitchen_ticket_id'); }
+    public function stockReservations(): \Illuminate\Database\Eloquent\Relations\HasMany { return $this->hasMany(\App\Modules\Inventory\Models\StockReservation::class); }
     public function orderItem(): BelongsTo { return $this->belongsTo(OrderItem::class); }
 }

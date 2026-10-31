@@ -18,3 +18,5 @@ require __DIR__.'/restaurant_store.php';
 require __DIR__.'/restaurant_kitchen.php';
 
 require __DIR__.'/restaurant_admin.php';
+
+require __DIR__.'/restaurant_inventory.php';

@@ -2,10 +2,10 @@
 
 namespace App\Modules\Branches\Models;
 
-use App\Modules\Kitchen\Models\KitchenStation;
-use App\Modules\Kitchen\Models\KitchenTicket;
 use App\Modules\Restaurants\Models\Restaurant;
-use App\Modules\Staff\Models\BranchUserAssignment;
+use App\Modules\Inventory\Models\BranchIngredientStock;
+use App\Modules\Inventory\Models\PurchaseOrder;
+use App\Modules\Inventory\Models\InventoryCount;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -17,9 +17,19 @@ class Branch extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'restaurant_id', 'code', 'name', 'slug', 'phone', 'email',
-        'address_line', 'city', 'area', 'latitude', 'longitude',
-        'is_primary', 'is_active',
+        'restaurant_id',
+        'code',
+        'name',
+        'slug',
+        'phone',
+        'email',
+        'address_line',
+        'city',
+        'area',
+        'latitude',
+        'longitude',
+        'is_primary',
+        'is_active',
     ];
 
     protected function casts(): array
@@ -32,14 +42,38 @@ class Branch extends Model
         ];
     }
 
-    public function restaurant(): BelongsTo { return $this->belongsTo(Restaurant::class); }
-    public function businessHours(): HasMany { return $this->hasMany(BranchBusinessHour::class); }
-    public function specialHours(): HasMany { return $this->hasMany(BranchSpecialHour::class); }
-    public function settings(): HasMany { return $this->hasMany(BranchSetting::class); }
-    public function staffAssignments(): HasMany { return $this->hasMany(BranchUserAssignment::class); }
-    public function kitchenStations(): HasMany { return $this->hasMany(KitchenStation::class); }
-    public function kitchenTickets(): HasMany { return $this->hasMany(KitchenTicket::class); }
+    public function restaurant(): BelongsTo
+    {
+        return $this->belongsTo(Restaurant::class);
+    }
 
-    public function scopeActive(Builder $query): Builder { return $query->where('is_active', true); }
-    public function scopePrimary(Builder $query): Builder { return $query->where('is_primary', true); }
+    public function businessHours(): HasMany
+    {
+        return $this->hasMany(BranchBusinessHour::class);
+    }
+
+    public function specialHours(): HasMany
+    {
+        return $this->hasMany(BranchSpecialHour::class);
+    }
+
+    public function settings(): HasMany
+    {
+        return $this->hasMany(BranchSetting::class);
+    }
+
+
+    public function ingredientStocks(): HasMany { return $this->hasMany(BranchIngredientStock::class); }
+    public function purchaseOrders(): HasMany { return $this->hasMany(PurchaseOrder::class); }
+    public function inventoryCounts(): HasMany { return $this->hasMany(InventoryCount::class); }
+
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function scopePrimary(Builder $query): Builder
+    {
+        return $query->where('is_primary', true);
+    }
 }

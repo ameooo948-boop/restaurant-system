@@ -21,5 +21,6 @@ class OrderItemModifier extends Model
         ];
     }
 
+    public function option(): BelongsTo { return $this->belongsTo(\App\Modules\Menu\Models\ModifierOption::class, 'modifier_option_id'); }
     public function orderItem(): BelongsTo { return $this->belongsTo(OrderItem::class); }
 }

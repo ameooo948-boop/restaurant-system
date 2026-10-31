@@ -29,6 +29,7 @@ class KitchenTicket extends Model
     public function order(): BelongsTo { return $this->belongsTo(Order::class); }
     public function station(): BelongsTo { return $this->belongsTo(KitchenStation::class, 'kitchen_station_id'); }
     public function items(): HasMany { return $this->hasMany(KitchenTicketItem::class); }
+    public function stockReservations(): HasMany { return $this->hasMany(\App\Modules\Inventory\Models\StockReservation::class); }
     public function statusHistory(): HasMany { return $this->hasMany(KitchenTicketStatusHistory::class)->orderBy('created_at'); }
 
     public function scopeActive(Builder $query): Builder

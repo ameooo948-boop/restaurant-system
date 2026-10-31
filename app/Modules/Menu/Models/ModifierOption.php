@@ -27,6 +27,8 @@ class ModifierOption extends Model
         return $this->belongsTo(ModifierGroup::class, 'modifier_group_id');
     }
 
+    public function ingredientUsages(): HasMany { return $this->hasMany(\App\Modules\Inventory\Models\ModifierOptionIngredient::class); }
+
     public function branchPrices(): HasMany
     {
         return $this->hasMany(BranchModifierPrice::class);

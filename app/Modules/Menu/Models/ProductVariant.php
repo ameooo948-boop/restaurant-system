@@ -5,6 +5,8 @@ namespace App\Modules\Menu\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Modules\Inventory\Models\Recipe;
 
 class ProductVariant extends Model
 {
@@ -27,6 +29,8 @@ class ProductVariant extends Model
     {
         return $this->belongsTo(Product::class);
     }
+
+    public function recipe(): HasOne { return $this->hasOne(Recipe::class, 'product_variant_id'); }
 
     public function branchSettings(): HasMany
     {

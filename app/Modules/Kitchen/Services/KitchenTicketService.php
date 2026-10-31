@@ -3,6 +3,7 @@
 namespace App\Modules\Kitchen\Services;
 
 use App\Models\User;
+use App\Modules\Inventory\Services\InventoryStockService;
 use App\Modules\Kitchen\Models\KitchenTicket;
 use App\Modules\Orders\Enums\OrderStatus;
 use App\Modules\Orders\Models\Order;
@@ -12,6 +13,8 @@ use Illuminate\Validation\ValidationException;
 
 class KitchenTicketService
 {
+    public function __construct(private readonly InventoryStockService $inventory) {}
+
     public function transition(int $branchId, int $ticketId, string $targetStatus, User $user, ?string $note = null): KitchenTicket
     {
         return DB::transaction(function () use ($branchId, $ticketId, $targetStatus, $user, $note): KitchenTicket {
@@ -50,6 +53,12 @@ class KitchenTicketService
                 throw ValidationException::withMessages([
                     'status' => 'انتقال حالة تذكرة المطبخ غير مسموح.',
                 ]);
+            }
+
+            if ($targetStatus === 'preparing') {
+                // Reserve first (idempotently), then convert this station's reservation to consumption.
+                $this->inventory->reserveForOrder($order);
+                $this->inventory->consumeForTicket($ticket, $user);
             }
 
             $oldTicketStatus = $ticket->status;

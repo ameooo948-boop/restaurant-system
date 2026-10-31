@@ -10,6 +10,9 @@ Route::get('/', function () {
 require __DIR__.'/restaurant_auth.php';
 
 // Load storefront routes on every Laravel application boot.
-// Do not use require_once here: PHPUnit may reboot the application between tests,
+// Do not use require here: PHPUnit may reboot the application between tests,
 // and each boot needs a fresh route collection.
 require __DIR__.'/restaurant_store.php';
+
+// Kitchen display and station management routes.
+require __DIR__.'/restaurant_kitchen.php';

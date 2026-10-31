@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Modules\Branches\Models\Branch;
 use App\Modules\Cart\Models\Cart;
 use App\Modules\Customers\Models\CustomerProfile;
+use App\Modules\Kitchen\Models\KitchenTicket;
 use App\Modules\Orders\Enums\OrderStatus;
 use App\Modules\Orders\Enums\OrderType;
 use Illuminate\Database\Eloquent\Builder;
@@ -28,15 +29,10 @@ class Order extends Model
     {
         return [
             'delivery_address_snapshot' => 'array',
-            'subtotal' => 'decimal:2',
-            'discount_total' => 'decimal:2',
-            'tax_total' => 'decimal:2',
-            'delivery_fee' => 'decimal:2',
-            'total' => 'decimal:2',
-            'placed_at' => 'datetime',
-            'confirmed_at' => 'datetime',
-            'completed_at' => 'datetime',
-            'cancelled_at' => 'datetime',
+            'subtotal' => 'decimal:2', 'discount_total' => 'decimal:2', 'tax_total' => 'decimal:2',
+            'delivery_fee' => 'decimal:2', 'total' => 'decimal:2',
+            'placed_at' => 'datetime', 'confirmed_at' => 'datetime',
+            'completed_at' => 'datetime', 'cancelled_at' => 'datetime',
         ];
     }
 
@@ -47,14 +43,8 @@ class Order extends Model
     public function items(): HasMany { return $this->hasMany(OrderItem::class); }
     public function statusHistory(): HasMany { return $this->hasMany(OrderStatusHistory::class)->orderBy('created_at'); }
     public function payments(): HasMany { return $this->hasMany(Payment::class); }
+    public function kitchenTickets(): HasMany { return $this->hasMany(KitchenTicket::class); }
 
-    public function isOwnedBy(User $user): bool
-    {
-        return (int) $this->user_id === (int) $user->id;
-    }
-
-    public function scopePublicId(Builder $query, string $publicId): Builder
-    {
-        return $query->where('public_id', $publicId);
-    }
+    public function isOwnedBy(User $user): bool { return (int) $this->user_id === (int) $user->id; }
+    public function scopePublicId(Builder $query, string $publicId): Builder { return $query->where('public_id', $publicId); }
 }

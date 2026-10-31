@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Modules\Branches\Models\BranchSetting;
 use App\Modules\Cart\Models\Cart;
 use App\Modules\Cart\Services\CartPricingService;
+use App\Modules\Kitchen\Actions\CreateKitchenTicketsAction;
 use App\Modules\Orders\DTOs\CheckoutData;
 use App\Modules\Orders\Enums\OrderStatus;
 use App\Modules\Orders\Models\Order;
@@ -17,9 +18,10 @@ use Illuminate\Validation\ValidationException;
 
 class PlaceOrderAction
 {
-    public function __construct(private readonly CartPricingService $pricing)
-    {
-    }
+    public function __construct(
+        private readonly CartPricingService $pricing,
+        private readonly CreateKitchenTicketsAction $kitchenTickets,
+    ) {}
 
     public function execute(Cart $cart, CheckoutData $data, ?User $user): Order
     {
@@ -29,7 +31,8 @@ class PlaceOrderAction
             if ($lockedCart->status === 'converted') {
                 $existing = Order::query()->where('cart_id', $lockedCart->id)->with(['items.modifiers', 'payments'])->first();
                 if ($existing) {
-                    return $existing;
+                    $this->kitchenTickets->execute($existing);
+                    return $existing->load(['items.modifiers', 'payments', 'kitchenTickets']);
                 }
             }
 
@@ -48,7 +51,8 @@ class PlaceOrderAction
             $existingKey = Order::query()->where('idempotency_key', $data->idempotencyKey)->first();
             if ($existingKey) {
                 if ((int) $existingKey->cart_id === (int) $lockedCart->id) {
-                    return $existingKey->load(['items.modifiers', 'payments']);
+                    $this->kitchenTickets->execute($existingKey);
+                    return $existingKey->load(['items.modifiers', 'payments', 'kitchenTickets']);
                 }
                 throw ValidationException::withMessages(['idempotency_key' => 'مفتاح العملية مستخدم لطلب آخر. حدّث صفحة إتمام الطلب.']);
             }
@@ -66,9 +70,7 @@ class PlaceOrderAction
             $lockedCart->load(['branch.restaurant', 'items.variant.product', 'items.modifiers.option.group']);
             $summary = $this->pricing->summarize($lockedCart);
             $subtotalMinor = Money::toMinor($summary['subtotal']);
-            $deliveryFeeMinor = $data->orderType === 'delivery'
-                ? $this->deliveryFeeMinor($lockedCart->branch_id)
-                : 0;
+            $deliveryFeeMinor = $data->orderType === 'delivery' ? $this->deliveryFeeMinor($lockedCart->branch_id) : 0;
             $taxMinor = 0;
             $discountMinor = 0;
             $totalMinor = $subtotalMinor - $discountMinor + $taxMinor + $deliveryFeeMinor;
@@ -146,6 +148,9 @@ class PlaceOrderAction
                 }
             }
 
+            // Ticket creation is part of the same order transaction.
+            $this->kitchenTickets->execute($order);
+
             $order->statusHistory()->create([
                 'old_status' => null,
                 'new_status' => OrderStatus::PendingConfirmation->value,
@@ -171,7 +176,7 @@ class PlaceOrderAction
                 'expires_at' => null,
             ]);
 
-            return $order->load(['items.modifiers', 'payments', 'statusHistory']);
+            return $order->load(['items.modifiers', 'payments', 'statusHistory', 'kitchenTickets']);
         }, 3);
     }
 

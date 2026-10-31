@@ -80,6 +80,12 @@ const dateTime = (value) => value ? new Date(value).toLocaleString('ar-EG') : '�
             <Link v-if="can('kitchen.stations.manage')" :href="`/admin/branches/${branch.id}/kitchen/stations`" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-amber-300">
                 <p class="text-sm font-bold text-amber-700">الإعدادات التشغيلية</p><h2 class="mt-2 text-xl font-black">محطات المطبخ</h2><p class="mt-1 text-sm text-slate-500">إدارة المحطات وربط المنتجات بها.</p>
             </Link>
+            <Link v-if="can('reports.view')" :href="`/admin/branches/${branch.id}/reports`" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-amber-300">
+                <p class="text-sm font-bold text-amber-700">التحليلات</p><h2 class="mt-2 text-xl font-black">التقارير والمبيعات</h2><p class="mt-1 text-sm text-slate-500">المبيعات والتحصيل والمنتجات والمخزون.</p>
+            </Link>
+            <Link v-if="can('expenses.manage')" :href="`/admin/branches/${branch.id}/expenses`" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-amber-300">
+                <p class="text-sm font-bold text-amber-700">الإدارة المالية</p><h2 class="mt-2 text-xl font-black">المصروفات</h2><p class="mt-1 text-sm text-slate-500">تسجيل المصروفات التشغيلية ومراجعتها.</p>
+            </Link>
         </section>
 
         <section v-if="can('orders.view')" class="mt-8 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">

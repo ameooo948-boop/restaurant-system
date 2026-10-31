@@ -21,3 +21,6 @@ Route::middleware('auth')->group(function (): void {
 
 // Load restaurant menu administration routes.
 require __DIR__ . '/restaurant_menu.php';
+
+// Load branch-scoped reports and expense routes on every application boot.
+require __DIR__ . '/restaurant_reports.php';

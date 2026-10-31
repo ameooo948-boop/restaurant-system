@@ -7,4 +7,5 @@ enum KitchenTicketStatus: string
     case Queued = 'queued';
     case Preparing = 'preparing';
     case Ready = 'ready';
+    case Cancelled = 'cancelled';
 }

@@ -16,3 +16,5 @@ require __DIR__.'/restaurant_store.php';
 
 // Kitchen display and station management routes.
 require __DIR__.'/restaurant_kitchen.php';
+
+require __DIR__.'/restaurant_admin.php';

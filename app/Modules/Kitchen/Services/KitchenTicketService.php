@@ -5,6 +5,7 @@ namespace App\Modules\Kitchen\Services;
 use App\Models\User;
 use App\Modules\Kitchen\Models\KitchenTicket;
 use App\Modules\Orders\Enums\OrderStatus;
+use App\Modules\Orders\Models\Order;
 use App\Modules\Orders\Models\OrderStatusHistory;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -14,11 +15,27 @@ class KitchenTicketService
     public function transition(int $branchId, int $ticketId, string $targetStatus, User $user, ?string $note = null): KitchenTicket
     {
         return DB::transaction(function () use ($branchId, $ticketId, $targetStatus, $user, $note): KitchenTicket {
+            // Lock the parent order before the ticket. Order operations use the
+            // same lock order when cancelling an order, preventing lock inversion.
+            $ticketReference = KitchenTicket::query()
+                ->where('branch_id', $branchId)
+                ->findOrFail($ticketId);
+
+            $order = Order::query()
+                ->where('branch_id', $branchId)
+                ->lockForUpdate()
+                ->findOrFail($ticketReference->order_id);
+
             $ticket = KitchenTicket::query()
                 ->where('branch_id', $branchId)
-                ->with('order')
                 ->lockForUpdate()
                 ->findOrFail($ticketId);
+
+            if ($order->order_status === OrderStatus::Cancelled->value) {
+                throw ValidationException::withMessages([
+                    'status' => 'لا يمكن تحريك تذكرة مطبخ لطلب ملغي.',
+                ]);
+            }
 
             if ($ticket->status === $targetStatus) {
                 return $ticket->load(['station', 'items']);
@@ -59,7 +76,6 @@ class KitchenTicketService
                 'created_at' => $now,
             ]);
 
-            $order = $ticket->order()->lockForUpdate()->firstOrFail();
             $oldOrderStatus = $order->order_status;
             $newOrderStatus = null;
 
